@@ -1,3 +1,5 @@
+import src.CalendarDay;
+
 /**
  * Model class.
  *
@@ -5,27 +7,39 @@
  */
 public final class Model1 implements Model {
 
-    /**
-     * Model variables.
-     */
-    private final int top, bottom;
-
-    /**
-     * Default constructor.
-     */
+	CalendarDay day;
+	int month, startDay, numDays, year;
+	
     public Model1() {
-        this.top = 0;
-        this.bottom = 0;
+    	this.day = new CalendarDay();
+    	this.month = 0;
+    	this.startDay = 6;
+    	this.numDays = 31;
+    	this.year = 2022;
     }
-
+    
     @Override
-    public int top() {
-        return this.top;
+    public CalendarDay selectedDay() {
+    	return this.day;
     }
-
+	
     @Override
-    public int bottom() {
-        return this.bottom;
-    }
-
+	public int month() {
+		return this.month;
+	}
+	
+    @Override
+	public int startDay() {
+		return this.startDay;
+	}
+	
+    @Override
+	public int numDays() {
+		return this.numDays;
+	}
+	
+    @Override
+	public int year() {
+		return this.year;
+	}
 }

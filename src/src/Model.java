@@ -1,40 +1,22 @@
+import src.CalendarDay;
+
 /**
  * Model interface.
+ * 
+ * There are two parts to this calender, a panel to show 
  *
- * The Natural Number Calculator model consists of the top and bottom operands
- * (which have only getter methods).
- *
- * @author Bruce W. Weide
- *
- * @mathmodel <pre>
- * type NNCalcModel is modeled by
- *   (top: NATURAL_NUMBER,
- *    bottom: NATURAL_NUMBER)
- * </pre>
- * @initially <pre>
- * ():
- *  ensures
- *   this = (0, 0)
- * </pre>
+ * @author Kyle Hoefker
  */
 public interface Model {
-
-    /**
-     * Reports top operand.
-     *
-     * @return this.top
-     * @aliases reference returned by {@code top}
-     * @ensures top = this.top
-     */
-    int top();
-
-    /**
-     * Reports bottom operand.
-     *
-     * @return this.bottom
-     * @aliases reference returned by {@code bottom}
-     * @ensures bottom = this.bottom
-     */
-    int bottom();
-
+	
+	CalendarDay selectedDay();
+	
+	int month();
+	
+	int startDay();
+	
+	int numDays();
+	
+	int year();
+	
 }

@@ -9,6 +9,8 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
+import src.CalendarDay;
+
 /**
  * View class.
  *
@@ -29,7 +31,7 @@ public final class View1 extends JFrame implements View {
         /**
          * Last event was clear, enter, another operator, or digit entry, resp.
          */
-        SAW_CLEAR, SAW_ENTER_OR_SWAP, SAW_OTHER_OP, SAW_DIGIT
+        SAW_BACK, SAW_FORWARD, SAW_DAY_SELECT, SAW_ADD, SAW_DELETE
     }
 
     /**
@@ -41,18 +43,17 @@ public final class View1 extends JFrame implements View {
     /**
      * Text areas.
      */
-    private final JTextArea tTop, tBottom;
+    private final JTextArea tMonth, tDay;
 
     /**
      * Operator and related buttons.
      */
-    private final JButton bClear, bSwap, bEnter, bAdd, bSubtract, bMultiply,
-            bDivide, bPower, bRoot;
+    private JButton bBack, bForward, bAdd, bDelete, bS, bM, bT, bW, bTh, bF, bSa;
 
     /**
      * Digit entry buttons.
      */
-    private final JButton[] bDigits;
+    private JButton[] bGrid;
 
     /**
      * Useful constants.
@@ -73,7 +74,7 @@ public final class View1 extends JFrame implements View {
          * Call the JFrame (superclass) constructor with a String parameter to
          * name the window in its title bar
          */
-        super("Natural Number Calculator");
+        super("Calendar");
 
         // Set up the GUI widgets --------------------------------------------
 
@@ -82,25 +83,44 @@ public final class View1 extends JFrame implements View {
          * currentState is not a GUI widget per se, but is needed to process
          * digit button events appropriately
          */
-        this.currentState = State.SAW_CLEAR;
+        this.currentState = State.SAW_DAY_SELECT;
 
         /*
          * Create widgets
          */
-        this.tTop = new JTextArea("", TEXT_AREA_HEIGHT, TEXT_AREA_WIDTH);
-        this.tBottom = new JTextArea("", TEXT_AREA_HEIGHT, TEXT_AREA_WIDTH);
-        this.bClear = new JButton("Clear");
-        this.bSwap = new JButton("Swap");
-        this.bEnter = new JButton("Enter");
-        this.bAdd = new JButton("+");
-        this.bSubtract = new JButton("-");
-        this.bMultiply = new JButton("*");
-        this.bDivide = new JButton("/");
-        this.bPower = new JButton("Power");
-        this.bRoot = new JButton("Root");
-        this.bDigits = new JButton[DIGIT_BUTTONS];
-        for (int i = 0; i < DIGIT_BUTTONS; i++) {
-            this.bDigits[i] = new JButton(Integer.toString(i));
+        this.tMonth = new JTextArea("January 2022", TEXT_AREA_HEIGHT, TEXT_AREA_WIDTH);
+        this.tDay = new JTextArea("1/1/2022\n\nList of events:\n", TEXT_AREA_HEIGHT, TEXT_AREA_WIDTH);
+        this.bBack = new JButton("December");
+        this.bForward = new JButton("February");
+        this.bAdd = new JButton("Add event");
+        this.bDelete = new JButton("Delete event");
+        this.bS = new JButton("S");
+        this.bS.setEnabled(false);
+        this.bM = new JButton("M");
+        this.bM.setEnabled(false);
+        this.bT = new JButton("T");
+        this.bT.setEnabled(false);
+        this.bW = new JButton("W");
+        this.bW.setEnabled(false);
+        this.bTh = new JButton("T");
+        this.bTh.setEnabled(false);
+        this.bF = new JButton("F");
+        this.bF.setEnabled(false);
+        this.bSa = new JButton("S");
+        this.bSa.setEnabled(false);
+        this.bGrid = new JButton[42];
+        int j = 1;
+        for (int i = 0; i < 42; i++) {
+        	if (i < 6) {
+        		this.bGrid[i] = new JButton("");
+        		this.bGrid[i].setEnabled(false);
+        	} else if (j > 31) {
+        		this.bGrid[i] = new JButton("");
+        		this.bGrid[i].setEnabled(false);
+        	} else {
+        		this.bGrid[i] = new JButton(Integer.toString(j));
+        		j++;
+        	}
         }
 
         // Set up the GUI widgets --------------------------------------------
@@ -110,114 +130,101 @@ public final class View1 extends JFrame implements View {
          * edited because allowing keyboard entry would require checking whether
          * entries are digits, which we don't want to have to do
          */
-        this.tTop.setEditable(false);
-        this.tTop.setLineWrap(true);
-        this.tTop.setWrapStyleWord(true);
-        this.tBottom.setEditable(false);
-        this.tBottom.setLineWrap(true);
-        this.tBottom.setWrapStyleWord(true);
+        this.tMonth.setEditable(false);
+        this.tMonth.setLineWrap(true);
+        this.tMonth.setWrapStyleWord(true);
+        this.tMonth.setEditable(false);
+        this.tMonth.setLineWrap(true);
+        this.tMonth.setWrapStyleWord(true);
 
-        /*
-         * Initially, the following buttons should be disabled: divide (divisor
-         * must not be 0) and root (root must be at least 2) -- hint: see the
-         * JButton method setEnabled
-         */
-        this.bDivide.setEnabled(false);
-        this.bRoot.setEnabled(false);
-
-        /*
-         * Create scroll panes for the text areas in case number is long enough
-         * to require scrolling
-         */
-        JScrollPane tTopScrollPane = new JScrollPane(this.tTop);
-        JScrollPane tBottomScrollPane = new JScrollPane(this.tBottom);
+//        /*
+//         * Create scroll panes for the text areas in case number is long enough
+//         * to require scrolling
+//         */
+//        JScrollPane tTopScrollPane = new JScrollPane(this.tMonth);
+//        JScrollPane tBottomScrollPane = new JScrollPane(this.tDay);
 
         /*
          * Create main button panel
          */
-        JPanel mainButtonPanel = new JPanel(new GridLayout(
-                MAIN_BUTTON_PANEL_GRID_ROWS, MAIN_BUTTON_PANEL_GRID_COLUMNS));
+        JPanel grid = new JPanel(new GridLayout(7, 7));
 
         /*
          * Add the buttons to the main button panel, from left to right and top
          * to bottom
          */
-        for (int i = 7; i <= 9; i++) {
-            mainButtonPanel.add(this.bDigits[i]);
+        grid.add(bS);
+        grid.add(bM);
+        grid.add(bT);
+        grid.add(bW);
+        grid.add(bTh);
+        grid.add(bF);
+        grid.add(bSa);
+        for (int i = 0; i < 42; i++) {
+            grid.add(this.bGrid[i]);
         }
-        mainButtonPanel.add(this.bAdd);
-
-        for (int i = 4; i <= 6; i++) {
-            mainButtonPanel.add(this.bDigits[i]);
-        }
-        mainButtonPanel.add(this.bSubtract);
-
-        for (int i = 1; i <= 3; i++) {
-            mainButtonPanel.add(this.bDigits[i]);
-        }
-        mainButtonPanel.add(this.bMultiply);
-
-        mainButtonPanel.add(this.bDigits[0]);
-        mainButtonPanel.add(this.bPower);
-        mainButtonPanel.add(this.bRoot);
-        mainButtonPanel.add(this.bDivide);
-
-        /*
-         * Create side button panel
-         */
-        JPanel sideButtonPanel = new JPanel(new GridLayout(
-                SIDE_BUTTON_PANEL_GRID_ROWS, SIDE_BUTTON_PANEL_GRID_COLUMNS));
-
-        /*
-         * Add the buttons to the side button panel, from left to right and top
-         * to bottom
-         */
-        sideButtonPanel.add(this.bClear);
-        sideButtonPanel.add(this.bSwap);
-        sideButtonPanel.add(this.bEnter);
-
-        /*
-         * Create combined button panel organized using flow layout, which is
-         * simple and does the right thing: sizes of nested panels are natural,
-         * not necessarily equal as with grid layout
-         */
-        JPanel combinedButtonPanel = new JPanel(new FlowLayout());
-
-        /*
-         * Add the other two button panels to the combined button panel
-         */
-        combinedButtonPanel.add(mainButtonPanel);
-        combinedButtonPanel.add(sideButtonPanel);
+        
+        JPanel backForward = new JPanel(new GridLayout(1, 3));
+        backForward.add(bBack);
+        backForward.add(tMonth);
+        backForward.add(bForward);
+        
+        JPanel addDelete = new JPanel(new GridLayout(1, 3));
+        addDelete.add(bDelete);
+        addDelete.add(tDay);
+        addDelete.add(bAdd);
+        
+//        /*
+//         * Create side button panel
+//         */
+//        JPanel sideButtonPanel = new JPanel(new GridLayout(
+//                SIDE_BUTTON_PANEL_GRID_ROWS, SIDE_BUTTON_PANEL_GRID_COLUMNS));
+//
+//        /*
+//         * Add the buttons to the side button panel, from left to right and top
+//         * to bottom
+//         */
+//        sideButtonPanel.add(this.bClear);
+//        sideButtonPanel.add(this.bSwap);
+//        sideButtonPanel.add(this.bEnter);
+//        sideButtonPanel.add
+//
+//        /*
+//         * Create combined button panel organized using flow layout, which is
+//         * simple and does the right thing: sizes of nested panels are natural,
+//         * not necessarily equal as with grid layout
+//         */
+//        JPanel combinedButtonPanel = new JPanel(new FlowLayout());
+//
+//        /*
+//         * Add the other two button panels to the combined button panel
+//         */
+//        combinedButtonPanel.add(mainButtonPanel);
+//        combinedButtonPanel.add(sideButtonPanel);
 
         /*
          * Organize main window
          */
-        this.setLayout(new GridLayout(CALC_GRID_ROWS, CALC_GRID_COLUMNS));
+        this.setLayout(new GridLayout(2, 2));
 
         /*
          * Add scroll panes and button panel to main window, from left to right
          * and top to bottom
          */
-        this.add(tTopScrollPane);
-        this.add(tBottomScrollPane);
-        this.add(combinedButtonPanel);
+        this.add(backForward);
+        this.add(addDelete);
+        this.add(grid);
+        this.add(tDay);
 
         // Set up the observers ----------------------------------------------
 
         /*
          * Register this object as the observer for all GUI events
          */
-        this.bClear.addActionListener(this);
-        this.bSwap.addActionListener(this);
-        this.bEnter.addActionListener(this);
-        this.bAdd.addActionListener(this);
-        this.bSubtract.addActionListener(this);
-        this.bMultiply.addActionListener(this);
-        this.bDivide.addActionListener(this);
-        this.bPower.addActionListener(this);
-        this.bRoot.addActionListener(this);
-        for (int i = 0; i < DIGIT_BUTTONS; i++) {
-            this.bDigits[i].addActionListener(this);
+        this.bBack.addActionListener(this);
+        this.bForward.addActionListener(this);
+        for (int i = 0; i < 42; i++) {
+            this.bGrid[i].addActionListener(this);
         }
 
         // Set up the main application window --------------------------------
@@ -237,34 +244,141 @@ public final class View1 extends JFrame implements View {
     }
 
     @Override
-    public void updateTopDisplay(int n) {
-        this.tTop.setText(Integer.toString(n));
+    public void UpdateDayDisplay(CalendarDay day) {
+    	
     }
-
+    
     @Override
-    public void updateBottomDisplay(int n) {
-        this.tBottom.setText(Integer.toString(n));
+    public void UpdateMonthDisplay(int month, int year) {
+    	switch (month) {
+    		case 0: {
+    			this.tMonth.setText("January " + year);
+    			break;
+    		}
+    		
+    		case 1: {
+    			this.tMonth.setText("February " + year);
+    			break;
+    		}
+    		
+    		case 2: {
+    			this.tMonth.setText("March " + year);
+    			break;
+    		}
+    		
+    		case 3: {
+    			this.tMonth.setText("April " + year);
+    			break;
+    		}
+    		
+    		case 4: {
+    			this.tMonth.setText("May " + year);
+    			break;
+    		}
+    		
+    		case 5: {
+    			this.tMonth.setText("June " + year);
+    			break;
+    		}
+    		
+    		case 6: {
+    			this.tMonth.setText("July " + year);
+    			break;
+    		}
+    		
+    		case 7: {
+    			this.tMonth.setText("August " + year);
+    			break;
+    		}
+    		
+    		case 8: {
+    			this.tMonth.setText("September " + year);
+    			break;
+    		}
+    		
+    		case 9: {
+    			this.tMonth.setText("October " + year);
+    			break;
+    		}
+    		
+    		case 10: {
+    			this.tMonth.setText("November " + year);
+    			break;
+    		}
+    		
+    		case 11: {
+    			this.tMonth.setText("December " + year);
+    			break;
+    		}
+    		
+    		default: {
+    			this.tMonth.setText("Error");
+    		}
+    	}
     }
-
+    
     @Override
-    public void updateSubtractAllowed(boolean allowed) {
-        this.bSubtract.setEnabled(allowed);
+    public void UpdatePrevMonthAllowed(boolean allowed) {
+    	
     }
-
+    
     @Override
-    public void updateDivideAllowed(boolean allowed) {
-        this.bDivide.setEnabled(allowed);
+    public void UpdateNextMonthAllowed(boolean allowed) {
+    	
     }
-
+    
     @Override
-    public void updatePowerAllowed(boolean allowed) {
-        this.bPower.setEnabled(allowed);
+    public void UpdateGridAllowed(int startDay, int numDays) {
+    	this.bGrid = new JButton[42];
+        int j = 1;
+        for (int i = 0; i < 42; i++) {
+        	if (i < startDay) {
+        		this.bGrid[i] = new JButton("");
+        		this.bGrid[i].setEnabled(false);
+        	} else if (j > numDays) {
+        		this.bGrid[i] = new JButton("");
+        		this.bGrid[i].setEnabled(false);
+        	} else {
+        		this.bGrid[i] = new JButton(Integer.toString(j));
+        		j++;
+        	}
+        }
     }
-
+    
     @Override
-    public void updateRootAllowed(boolean allowed) {
-        this.bRoot.setEnabled(allowed);
+    public void UpdateDeleteEventAllowed(boolean allowed) {
+    	
     }
+    
+//    @Override
+//    public void updateTopDisplay(int n) {
+//        this.tTop.setText(n.toString());
+//    }
+//
+//    @Override
+//    public void updateBottomDisplay(int n) {
+//        this.tBottom.setText(n.toString());
+//    }
+//
+//    @Override
+//    public void updateSubtractAllowed(boolean allowed) {
+//        this.bSubtract.setEnabled(allowed);
+//    }
+//
+//    @Override
+//    public void updateDivideAllowed(boolean allowed) {
+//        this.bDivide.setEnabled(allowed);
+//    }
+//
+//    @Override
+//    public void updatePowerAllowed(boolean allowed) {
+//        this.bPower.setEnabled(allowed);
+//    }
+//
+//    @Override
+//    public void updateRootAllowed(boolean allowed) {
+//        this.bRoot.setEnabled(allowed);
+//    }
 
     @Override
     public void actionPerformed(ActionEvent event) {
@@ -283,50 +397,22 @@ public final class View1 extends JFrame implements View {
          * to refresh the view
          */
         Object source = event.getSource();
-        if (source == this.bClear) {
-            this.controller.processClearEvent();
-            this.currentState = State.SAW_CLEAR;
-        } else if (source == this.bSwap) {
-            this.controller.processSwapEvent();
-            this.currentState = State.SAW_ENTER_OR_SWAP;
-        } else if (source == this.bEnter) {
-            this.controller.processEnterEvent();
-            this.currentState = State.SAW_ENTER_OR_SWAP;
+        if (source == this.bBack) {
+            this.controller.processBack();
+            this.currentState = State.SAW_BACK;
+        } else if (source == this.bForward) {
+            this.controller.processForward();
+            this.currentState = State.SAW_FORWARD;
         } else if (source == this.bAdd) {
-            this.controller.processAddEvent();
-            this.currentState = State.SAW_OTHER_OP;
-        } else if (source == this.bSubtract) {
-            this.controller.processSubtractEvent();
-            this.currentState = State.SAW_OTHER_OP;
-        } else if (source == this.bMultiply) {
-            this.controller.processMultiplyEvent();
-            this.currentState = State.SAW_OTHER_OP;
-        } else if (source == this.bDivide) {
-            this.controller.processDivideEvent();
-            this.currentState = State.SAW_OTHER_OP;
-        } else if (source == this.bPower) {
-            this.controller.processPowerEvent();
-            this.currentState = State.SAW_OTHER_OP;
-        } else if (source == this.bRoot) {
-            this.controller.processRootEvent();
-            this.currentState = State.SAW_OTHER_OP;
+            this.controller.processAdd();
+            this.currentState = State.SAW_ADD;
+        } else if (source == this.bDelete) {
+            this.controller.processDelete();
+            this.currentState = State.SAW_DELETE;
         } else {
-            for (int i = 0; i < DIGIT_BUTTONS; i++) {
-                if (source == this.bDigits[i]) {
-                    switch (this.currentState) {
-                        case SAW_ENTER_OR_SWAP:
-                            this.controller.processClearEvent();
-                            break;
-                        case SAW_OTHER_OP:
-                            this.controller.processEnterEvent();
-                            this.controller.processClearEvent();
-                            break;
-                        default:
-                            break;
-                    }
-                    this.controller.processAddNewDigitEvent(i);
-                    this.currentState = State.SAW_DIGIT;
-                    break;
+            for (int i = 0; i < 42; i++) {
+                if (source == this.bGrid[i]) {
+                    this.controller.processDaySelect(i);
                 }
             }
         }
