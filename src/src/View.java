@@ -1,6 +1,6 @@
 import java.awt.event.ActionListener;
-
-import src.CalendarDay;
+import java.util.List;
+import java.util.Map;
 
 /**
  * View interface.
@@ -11,16 +11,12 @@ public interface View extends ActionListener {
 	
     void registerObserver(Controller c);
     
-    void UpdateDayDisplay(CalendarDay day);
+    void UpdateDayDisplay(int key, Map<Integer, List<String>> events);
     
     void UpdateMonthDisplay(int month, int year);
     
-    void UpdatePrevMonthAllowed(boolean allowed);
-    
-    void UpdateNextMonthAllowed(boolean allowed);
-    
     void UpdateGridAllowed(int startDay, int numDays);
     
-    void UpdateDeleteEventAllowed(boolean allowed);
+    void UpdateDeleteEventAllowed(int key, Map<Integer, List<String>> events);
 
 }

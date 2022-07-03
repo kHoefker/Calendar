@@ -1,4 +1,5 @@
-import src.CalendarDay;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Model interface.
@@ -9,14 +10,28 @@ import src.CalendarDay;
  */
 public interface Model {
 	
-	CalendarDay selectedDay();
+	Map<Integer, List<String>> events();
+	
+	int selectedDay();
+	
+	void setSelectedDay(int day);
 	
 	int month();
 	
+	void setMonth(int month);
+	
 	int startDay();
+	
+	void setStartDay(int startDay);
 	
 	int numDays();
 	
+	void setNumDays(int numDays);
+	
 	int year();
+	
+	void setYear(int year);
+	
+	boolean leapYear();
 	
 }

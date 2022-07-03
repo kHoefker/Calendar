@@ -2,14 +2,16 @@ import java.awt.Cursor;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.List;
+import java.util.Map;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-
-import src.CalendarDay;
 
 /**
  * View class.
@@ -23,22 +25,6 @@ public final class View1 extends JFrame implements View {
      * events.
      */
     private Controller controller;
-
-    /**
-     * State of user interaction: last event "seen".
-     */
-    private enum State {
-        /**
-         * Last event was clear, enter, another operator, or digit entry, resp.
-         */
-        SAW_BACK, SAW_FORWARD, SAW_DAY_SELECT, SAW_ADD, SAW_DELETE
-    }
-
-    /**
-     * State variable to keep track of which event happened last; needed to
-     * prepare for digit to be added to bottom operand.
-     */
-    private State currentState;
 
     /**
      * Text areas.
@@ -58,11 +44,7 @@ public final class View1 extends JFrame implements View {
     /**
      * Useful constants.
      */
-    private static final int TEXT_AREA_HEIGHT = 5, TEXT_AREA_WIDTH = 20,
-            DIGIT_BUTTONS = 10, MAIN_BUTTON_PANEL_GRID_ROWS = 4,
-            MAIN_BUTTON_PANEL_GRID_COLUMNS = 4, SIDE_BUTTON_PANEL_GRID_ROWS = 3,
-            SIDE_BUTTON_PANEL_GRID_COLUMNS = 1, CALC_GRID_ROWS = 3,
-            CALC_GRID_COLUMNS = 1;
+    private static final int TEXT_AREA_HEIGHT = 5, TEXT_AREA_WIDTH = 20;
 
     /**
      * Default constructor.
@@ -75,23 +57,19 @@ public final class View1 extends JFrame implements View {
          * name the window in its title bar
          */
         super("Calendar");
+        
+        final JFrame inputFrame = new JFrame();
+        inputFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
         // Set up the GUI widgets --------------------------------------------
-
-        /*
-         * Set up initial state of GUI to behave like last event was "Clear";
-         * currentState is not a GUI widget per se, but is needed to process
-         * digit button events appropriately
-         */
-        this.currentState = State.SAW_DAY_SELECT;
 
         /*
          * Create widgets
          */
         this.tMonth = new JTextArea("January 2022", TEXT_AREA_HEIGHT, TEXT_AREA_WIDTH);
-        this.tDay = new JTextArea("1/1/2022\n\nList of events:\n", TEXT_AREA_HEIGHT, TEXT_AREA_WIDTH);
-        this.bBack = new JButton("December");
-        this.bForward = new JButton("February");
+        this.tDay = new JTextArea("", TEXT_AREA_HEIGHT, TEXT_AREA_WIDTH);
+        this.bBack = new JButton("Last Month");
+        this.bForward = new JButton("Next Month");
         this.bAdd = new JButton("Add event");
         this.bDelete = new JButton("Delete event");
         this.bS = new JButton("S");
@@ -133,9 +111,10 @@ public final class View1 extends JFrame implements View {
         this.tMonth.setEditable(false);
         this.tMonth.setLineWrap(true);
         this.tMonth.setWrapStyleWord(true);
-        this.tMonth.setEditable(false);
-        this.tMonth.setLineWrap(true);
-        this.tMonth.setWrapStyleWord(true);
+        this.tDay.setEditable(false);
+        this.tDay.setLineWrap(true);
+        this.tDay.setWrapStyleWord(true);
+        
 
 //        /*
 //         * Create scroll panes for the text areas in case number is long enough
@@ -173,34 +152,6 @@ public final class View1 extends JFrame implements View {
         addDelete.add(bDelete);
         addDelete.add(tDay);
         addDelete.add(bAdd);
-        
-//        /*
-//         * Create side button panel
-//         */
-//        JPanel sideButtonPanel = new JPanel(new GridLayout(
-//                SIDE_BUTTON_PANEL_GRID_ROWS, SIDE_BUTTON_PANEL_GRID_COLUMNS));
-//
-//        /*
-//         * Add the buttons to the side button panel, from left to right and top
-//         * to bottom
-//         */
-//        sideButtonPanel.add(this.bClear);
-//        sideButtonPanel.add(this.bSwap);
-//        sideButtonPanel.add(this.bEnter);
-//        sideButtonPanel.add
-//
-//        /*
-//         * Create combined button panel organized using flow layout, which is
-//         * simple and does the right thing: sizes of nested panels are natural,
-//         * not necessarily equal as with grid layout
-//         */
-//        JPanel combinedButtonPanel = new JPanel(new FlowLayout());
-//
-//        /*
-//         * Add the other two button panels to the combined button panel
-//         */
-//        combinedButtonPanel.add(mainButtonPanel);
-//        combinedButtonPanel.add(sideButtonPanel);
 
         /*
          * Organize main window
@@ -212,7 +163,7 @@ public final class View1 extends JFrame implements View {
          * and top to bottom
          */
         this.add(backForward);
-        this.add(addDelete);
+        this.getContentPane().add(addDelete);
         this.add(grid);
         this.add(tDay);
 
@@ -226,6 +177,8 @@ public final class View1 extends JFrame implements View {
         for (int i = 0; i < 42; i++) {
             this.bGrid[i].addActionListener(this);
         }
+        this.bAdd.addActionListener(this);
+        this.bDelete.addActionListener(this);
 
         // Set up the main application window --------------------------------
 
@@ -244,70 +197,79 @@ public final class View1 extends JFrame implements View {
     }
 
     @Override
-    public void UpdateDayDisplay(CalendarDay day) {
+    public void UpdateDayDisplay(int key, Map<Integer, List<String>> events) {
+    	StringBuilder contents = new StringBuilder("" + ((key / 1000000) + 1) + " / " + (((key / 10000) % 100) + 1) + " / " + (key % 10000) + "\n\n");
     	
+    	if (events.containsKey(key)) {
+    		List<String> strings = events.get(key);
+    		for (int i = 0; i < strings.size(); i++) {
+    			contents.append("" + (i + 1) + ".  " + strings.get(i) + "\n");
+    		}
+    	}
+    	
+    	this.tDay.setText(contents.toString());
     }
     
     @Override
     public void UpdateMonthDisplay(int month, int year) {
     	switch (month) {
     		case 0: {
-    			this.tMonth.setText("January " + year);
+    			this.tMonth.setText("\n\n\n\n\n\n                    January " + year);
     			break;
     		}
     		
     		case 1: {
-    			this.tMonth.setText("February " + year);
+    			this.tMonth.setText("\n\n\n\n\n\n                   February " + year);
     			break;
     		}
     		
     		case 2: {
-    			this.tMonth.setText("March " + year);
+    			this.tMonth.setText("\n\n\n\n\n\n                      March " + year);
     			break;
     		}
     		
     		case 3: {
-    			this.tMonth.setText("April " + year);
+    			this.tMonth.setText("\n\n\n\n\n\n                      April " + year);
     			break;
     		}
     		
     		case 4: {
-    			this.tMonth.setText("May " + year);
+    			this.tMonth.setText("\n\n\n\n\n\n                        May " + year);
     			break;
     		}
     		
     		case 5: {
-    			this.tMonth.setText("June " + year);
+    			this.tMonth.setText("\n\n\n\n\n\n                       June " + year);
     			break;
     		}
     		
     		case 6: {
-    			this.tMonth.setText("July " + year);
+    			this.tMonth.setText("\n\n\n\n\n\n                       July " + year);
     			break;
     		}
     		
     		case 7: {
-    			this.tMonth.setText("August " + year);
+    			this.tMonth.setText("\n\n\n\n\n\n                     August " + year);
     			break;
     		}
     		
     		case 8: {
-    			this.tMonth.setText("September " + year);
+    			this.tMonth.setText("\n\n\n\n\n\n                  September " + year);
     			break;
     		}
     		
     		case 9: {
-    			this.tMonth.setText("October " + year);
+    			this.tMonth.setText("\n\n\n\n\n\n                    October " + year);
     			break;
     		}
     		
     		case 10: {
-    			this.tMonth.setText("November " + year);
+    			this.tMonth.setText("\n\n\n\n\n\n                    November " + year);
     			break;
     		}
     		
     		case 11: {
-    			this.tMonth.setText("December " + year);
+    			this.tMonth.setText("\n\n\n\n\n\n                    December " + year);
     			break;
     		}
     		
@@ -318,67 +280,35 @@ public final class View1 extends JFrame implements View {
     }
     
     @Override
-    public void UpdatePrevMonthAllowed(boolean allowed) {
-    	
-    }
-    
-    @Override
-    public void UpdateNextMonthAllowed(boolean allowed) {
-    	
-    }
-    
-    @Override
     public void UpdateGridAllowed(int startDay, int numDays) {
-    	this.bGrid = new JButton[42];
         int j = 1;
         for (int i = 0; i < 42; i++) {
         	if (i < startDay) {
-        		this.bGrid[i] = new JButton("");
+        		this.bGrid[i].setText("");
         		this.bGrid[i].setEnabled(false);
         	} else if (j > numDays) {
-        		this.bGrid[i] = new JButton("");
+        		this.bGrid[i].setText("");
         		this.bGrid[i].setEnabled(false);
         	} else {
-        		this.bGrid[i] = new JButton(Integer.toString(j));
+        		this.bGrid[i].setText(Integer.toString(j));
+        		this.bGrid[i].setEnabled(true);
         		j++;
         	}
         }
     }
     
     @Override
-    public void UpdateDeleteEventAllowed(boolean allowed) {
-    	
+    public void UpdateDeleteEventAllowed(int key, Map<Integer, List<String>> events) {
+    	if (events.containsKey(key)) {
+    		if (events.get(key).isEmpty()) {
+    			this.bDelete.setEnabled(false);
+    		} else {
+    			this.bDelete.setEnabled(true);
+    		}
+    	} else {
+    		this.bDelete.setEnabled(false);
+    	}
     }
-    
-//    @Override
-//    public void updateTopDisplay(int n) {
-//        this.tTop.setText(n.toString());
-//    }
-//
-//    @Override
-//    public void updateBottomDisplay(int n) {
-//        this.tBottom.setText(n.toString());
-//    }
-//
-//    @Override
-//    public void updateSubtractAllowed(boolean allowed) {
-//        this.bSubtract.setEnabled(allowed);
-//    }
-//
-//    @Override
-//    public void updateDivideAllowed(boolean allowed) {
-//        this.bDivide.setEnabled(allowed);
-//    }
-//
-//    @Override
-//    public void updatePowerAllowed(boolean allowed) {
-//        this.bPower.setEnabled(allowed);
-//    }
-//
-//    @Override
-//    public void updateRootAllowed(boolean allowed) {
-//        this.bRoot.setEnabled(allowed);
-//    }
 
     @Override
     public void actionPerformed(ActionEvent event) {
@@ -399,16 +329,12 @@ public final class View1 extends JFrame implements View {
         Object source = event.getSource();
         if (source == this.bBack) {
             this.controller.processBack();
-            this.currentState = State.SAW_BACK;
         } else if (source == this.bForward) {
             this.controller.processForward();
-            this.currentState = State.SAW_FORWARD;
         } else if (source == this.bAdd) {
             this.controller.processAdd();
-            this.currentState = State.SAW_ADD;
         } else if (source == this.bDelete) {
             this.controller.processDelete();
-            this.currentState = State.SAW_DELETE;
         } else {
             for (int i = 0; i < 42; i++) {
                 if (source == this.bGrid[i]) {
