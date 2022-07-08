@@ -1,20 +1,16 @@
 import java.awt.Cursor;
-import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.List;
 import java.util.Map;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
 /**
- * View class.
+ * View class
  *
  * @author Kyle Hoefker
  */
@@ -32,30 +28,16 @@ public final class View1 extends JFrame implements View {
     private final JTextArea tMonth, tDay;
 
     /**
-     * Operator and related buttons.
+     * Buttons.
      */
     private JButton bBack, bForward, bAdd, bDelete, bS, bM, bT, bW, bTh, bF, bSa;
-
-    /**
-     * Digit entry buttons.
-     */
     private JButton[] bGrid;
-
-    /**
-     * Useful constants.
-     */
-    private static final int TEXT_AREA_HEIGHT = 5, TEXT_AREA_WIDTH = 20;
 
     /**
      * Default constructor.
      */
     public View1() {
         // Create the JFrame being extended
-
-        /*
-         * Call the JFrame (superclass) constructor with a String parameter to
-         * name the window in its title bar
-         */
         super("Calendar");
         
         final JFrame inputFrame = new JFrame();
@@ -66,8 +48,8 @@ public final class View1 extends JFrame implements View {
         /*
          * Create widgets
          */
-        this.tMonth = new JTextArea("January 2022", TEXT_AREA_HEIGHT, TEXT_AREA_WIDTH);
-        this.tDay = new JTextArea("", TEXT_AREA_HEIGHT, TEXT_AREA_WIDTH);
+        this.tMonth = new JTextArea("January 2022", 5, 20);
+        this.tDay = new JTextArea("", 5, 20);
         this.bBack = new JButton("Last Month");
         this.bForward = new JButton("Next Month");
         this.bAdd = new JButton("Add event");
@@ -103,11 +85,6 @@ public final class View1 extends JFrame implements View {
 
         // Set up the GUI widgets --------------------------------------------
 
-        /*
-         * Text areas should wrap lines, and should be read-only; they cannot be
-         * edited because allowing keyboard entry would require checking whether
-         * entries are digits, which we don't want to have to do
-         */
         this.tMonth.setEditable(false);
         this.tMonth.setLineWrap(true);
         this.tMonth.setWrapStyleWord(true);
@@ -115,22 +92,13 @@ public final class View1 extends JFrame implements View {
         this.tDay.setLineWrap(true);
         this.tDay.setWrapStyleWord(true);
         
-
-//        /*
-//         * Create scroll panes for the text areas in case number is long enough
-//         * to require scrolling
-//         */
-//        JScrollPane tTopScrollPane = new JScrollPane(this.tMonth);
-//        JScrollPane tBottomScrollPane = new JScrollPane(this.tDay);
-
         /*
-         * Create main button panel
+         * Create day selection grid
          */
         JPanel grid = new JPanel(new GridLayout(7, 7));
 
         /*
-         * Add the buttons to the main button panel, from left to right and top
-         * to bottom
+         * Add Weekdays
          */
         grid.add(bS);
         grid.add(bM);
@@ -143,11 +111,17 @@ public final class View1 extends JFrame implements View {
             grid.add(this.bGrid[i]);
         }
         
+        /*
+         * Create month panel
+         */
         JPanel backForward = new JPanel(new GridLayout(1, 3));
         backForward.add(bBack);
         backForward.add(tMonth);
         backForward.add(bForward);
         
+        /*
+         * Create a panel to add and delete events
+         */
         JPanel addDelete = new JPanel(new GridLayout(1, 3));
         addDelete.add(bDelete);
         addDelete.add(tDay);
@@ -157,11 +131,6 @@ public final class View1 extends JFrame implements View {
          * Organize main window
          */
         this.setLayout(new GridLayout(2, 2));
-
-        /*
-         * Add scroll panes and button panel to main window, from left to right
-         * and top to bottom
-         */
         this.add(backForward);
         this.getContentPane().add(addDelete);
         this.add(grid);
@@ -169,9 +138,6 @@ public final class View1 extends JFrame implements View {
 
         // Set up the observers ----------------------------------------------
 
-        /*
-         * Register this object as the observer for all GUI events
-         */
         this.bBack.addActionListener(this);
         this.bForward.addActionListener(this);
         for (int i = 0; i < 42; i++) {
@@ -181,11 +147,7 @@ public final class View1 extends JFrame implements View {
         this.bDelete.addActionListener(this);
 
         // Set up the main application window --------------------------------
-
-        /*
-         * Make sure the main window is appropriately sized, exits this program
-         * on close, and becomes visible to the user
-         */
+        
         this.pack();
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setVisible(true);
@@ -312,19 +274,11 @@ public final class View1 extends JFrame implements View {
 
     @Override
     public void actionPerformed(ActionEvent event) {
-        /*
-         * Set cursor to indicate computation on-going; this matters only if
-         * processing the event might take a noticeable amount of time as seen
-         * by the user
-         */
+    	
         this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+        
         /*
-         * Determine which event has occurred that we are being notified of by
-         * this callback; in this case, the source of the event (i.e, the widget
-         * calling actionPerformed) is all we need because only buttons are
-         * involved here, so the event must be a button press; in each case,
-         * tell the controller to do whatever is needed to update the model and
-         * to refresh the view
+         * Determine which event has occurred
          */
         Object source = event.getSource();
         if (source == this.bBack) {
@@ -342,10 +296,7 @@ public final class View1 extends JFrame implements View {
                 }
             }
         }
-        /*
-         * Set the cursor back to normal (because we changed it at the beginning
-         * of the method body)
-         */
+        
         this.setCursor(Cursor.getDefaultCursor());
     }
 

@@ -3,16 +3,21 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Model class.
+ * Model class
  *
  * @author Kyle Hoefker
  */
 public final class Model1 implements Model {
 
+	/*
+	 * Class variables
+	 */
 	int day, month, startDay, numDays, year;
 	Map<Integer, List<String>> events;
 	
-	
+	/*
+	 * Default constructor
+	 */
     public Model1() {
     	this.day = 0;
     	this.month = 0;

@@ -2,11 +2,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import javax.swing.Icon;
 import javax.swing.JOptionPane;
 
 /**
- * Controller class. e
+ * Controller class
  *
  * @author Kyle Hoefker
  */
